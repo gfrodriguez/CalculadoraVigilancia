@@ -1,9 +1,10 @@
-﻿<!DOCTYPE html>
+
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora N&oacute;mina Completa (Con Novedades)</title>
+    <title>Calculadora N&oacute;mina Pro (Navegaci&oacute;n)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
@@ -12,12 +13,13 @@
             --primary: #2c3e50;
             --accent: #27ae60;
             --info: #17a2b8;
-            /* Colores de Estados */
-            --day-bg: #fff3cd; --day-text: #856404;       /* Diurno */
-            --night-bg: #d1ecf1; --night-text: #0c5460;   /* Nocturno */
-            --rest-bg: #d4edda; --rest-text: #155724;     /* Descanso */
-            --perm-bg: #e8daef; --perm-text: #6c3483;     /* Permiso (Morado) */
-            --abs-bg: #fadbd8; --abs-text: #922b21;       /* Ausencia (Rojo) */
+            /* Colores Estados */
+            --day-bg: #fff3cd; --day-text: #533f03; /* Darker for better contrast */
+            --night-bg: #d1ecf1; --night-text: #0c5460;
+            --rest-bg: #d4edda; --rest-text: #155724;
+            --perm-bg: #e8daef; --perm-text: #6c3483;
+            --abs-bg: #fadbd8; --abs-text: #922b21;
+            --extra-bg: #ffe0b2; --extra-text: #e65100;
         }
 
         body {
@@ -38,9 +40,10 @@
         }
 
         h1 { text-align: center; color: var(--primary); margin-bottom: 5px; }
-        .badge-new { background: #e74c3c; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.6em; vertical-align: middle; }
+        .badge-new { background: #2980b9; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.6em; vertical-align: middle; }
         p.subtitle { text-align: center; color: #666; margin-bottom: 30px; }
 
+        /* --- Panel de Control --- */
         .controls-panel {
             background: #eef2f6;
             padding: 25px;
@@ -56,6 +59,15 @@
         .input-group label { font-weight: 700; font-size: 0.85em; color: var(--primary); margin-bottom: 6px; }
         .input-group input, .input-group select {
             padding: 12px; border: 1px solid #bdc3c7; border-radius: 8px; font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        .date-selectors { display: flex; gap: 10px; }
+        .date-selectors select { flex: 1; cursor: pointer; }
+
+        /* Mejora de Accesibilidad para Foco */
+        button:focus-visible, input:focus-visible, select:focus-visible {
+            outline: 3px solid var(--accent);
+            outline-offset: 2px;
         }
 
         .btn-group { grid-column: 1 / -1; display: flex; gap: 10px; }
@@ -65,7 +77,7 @@
         .btn-pdf { background-color: #c0392b; }
         .btn-pdf:hover { background-color: #a93226; }
 
-        /* Calendario */
+        /* --- Calendario --- */
         .calendar-wrapper { margin-bottom: 40px; overflow-x: auto; }
         .calendar-header {
             display: grid; grid-template-columns: repeat(7, minmax(50px, 1fr));
@@ -76,25 +88,32 @@
             border: 1px solid #ccc; background: #fff;
         }
         .day-cell {
-            min-height: 100px; border-right: 1px solid #eee; border-bottom: 1px solid #eee;
+            min-height: 100px; 
+            border: none; /* Reset button border */
+            border-right: 1px solid #eee; border-bottom: 1px solid #eee;
             padding: 8px; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between;
+            transition: transform 0.1s, box-shadow 0.2s;
+            font-family: inherit; text-align: left; /* Reset button text */
+            width: 100%; /* Ensure full width in grid */
+            border-radius: 0; /* Reset border radius */
         }
-        .day-cell:hover { background-color: #fdfdfd; box-shadow: inset 0 0 0 2px var(--accent); }
-        .day-cell.empty { background: #f8f9fa; cursor: default; }
+        .day-cell:hover, .day-cell:focus { transform: scale(1.02); box-shadow: 0 4px 15px rgba(0,0,0,0.15); z-index: 5; position: relative; }
+        .day-cell.empty { background: #f8f9fa; cursor: default; pointer-events: none; }
 
-        /* Clases de Estado */
+        /* Estados */
         .cell-diurno { background-color: var(--day-bg); color: var(--day-text); }
         .cell-nocturno { background-color: var(--night-bg); color: var(--night-text); }
         .cell-descanso { background-color: var(--rest-bg); color: var(--rest-text); }
         .cell-permiso { background-color: var(--perm-bg); color: var(--perm-text); }
         .cell-ausencia { background-color: var(--abs-bg); color: var(--abs-text); }
+        .cell-extra { background-color: var(--extra-bg); color: var(--extra-text); font-weight: bold; }
 
         .day-number { font-weight: bold; display: flex; justify-content: space-between; }
         .rate-indicator { font-size: 0.6em; background: rgba(0,0,0,0.05); padding: 2px 4px; border-radius: 4px; }
-        .day-label { font-size: 0.75em; text-align: center; font-weight: bold; text-transform: uppercase; }
+        .day-label { font-size: 0.7em; text-align: center; font-weight: bold; text-transform: uppercase; }
         .day-money { font-size: 0.85em; text-align: right; font-weight: 700; }
 
-        /* Resultados */
+        /* --- Resultados --- */
         .financial-summary {
             display: grid; grid-template-columns: 1fr 1fr; gap: 30px;
             background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 30px; margin-bottom: 40px;
@@ -105,19 +124,67 @@
         .final-pay { grid-column: 1 / -1; background: var(--primary); color: #fff; text-align: center; padding: 25px; border-radius: 10px; }
         .final-pay h2 { margin: 5px 0 0 0; font-size: 2.5em; }
 
+        /* --- MODAL --- */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); z-index: 1000; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: slideDown 0.3s ease;
+        }
+        @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        /* Encabezado del Modal con Navegación */
+        .modal-header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; 
+        }
+        
+        .modal-nav-container {
+            display: flex; align-items: center; gap: 15px; flex: 1;
+        }
+        
+        .modal-header h2 { margin: 0; color: var(--primary); font-size: 1.3em; text-align: center; min-width: 180px; }
+        
+        .nav-btn {
+            background: #f1f1f1; color: #555; border: none; width: 35px; height: 35px; border-radius: 50%;
+            font-size: 1.2em; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s; padding: 0;
+        }
+        .nav-btn:hover { background: #e0e0e0; color: #000; }
+        
+        .close-btn { 
+            background: none; border: none; font-size: 2em; cursor: pointer; color: #aaa; line-height: 1; padding: 0; margin-left: 10px;
+        }
+        .close-btn:hover { color: #333; }
+        
+        .modal-body select { width: 100%; padding: 10px; font-size: 1em; margin-bottom: 20px; border: 2px solid var(--accent); border-radius: 6px; }
+        
+        .detail-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .detail-table th, .detail-table td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; }
+        .detail-table th { background-color: #f8f9fa; color: #666; font-size: 0.9em; }
+        .detail-table td.amount { text-align: right; font-weight: bold; }
+        .detail-row-total { background-color: var(--primary); color: white; font-weight: bold; }
+        .detail-row-total td { border: none; }
+
+        .info-pill { background: #e3f2fd; color: #0d47a1; padding: 5px 10px; border-radius: 15px; font-size: 0.85em; display: inline-block; margin-bottom: 15px; }
+
         /* Guía Detallada */
+		.formula-box { background: #fff8e1; color: #856404; padding: 15px; border-radius: 6px; margin-bottom: 20px; font-size: 0.9em; text-align: center; border: 1px solid #ffeeba; }
         .education-section { background-color: #fff; border-radius: 12px; padding: 25px; border: 1px solid #e0e0e0; }
         .education-header { text-align: center; margin-bottom: 20px; }
-        .education-header h2 { color: var(--info); margin: 0; }
-        .formula-box { background: #fff8e1; color: #856404; padding: 15px; border-radius: 6px; margin-bottom: 20px; font-size: 0.9em; text-align: center; border: 1px solid #ffeeba; }
-        
         .rates-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-        .rate-card { background: #fdfdfd; border: 1px solid #eee; border-radius: 8px; padding: 15px; transition: transform 0.2s;}
-        .rate-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); border-color: var(--accent); }
-        
-        .rate-title { font-weight: bold; color: var(--primary); font-size: 1em; margin-bottom: 5px; display: flex; justify-content: space-between; }
-        .rate-percentage { background: var(--info); color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; }
-        .rate-calc { font-size: 0.85em; color: #666; margin-bottom: 10px; font-style: italic; }
+        .rate-card { 
+            background: #fdfdfd; border: 1px solid #eee; border-radius: 8px; padding: 15px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .rate-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-color: var(--accent);
+        }
+        .rate-title { font-weight: bold; color: var(--primary); font-size: 1em; display: flex; justify-content: space-between; }
         .rate-value { font-size: 1.3em; font-weight: bold; color: var(--accent); text-align: right; }
         
         @media (max-width: 768px) { .financial-summary { grid-template-columns: 1fr; } }
@@ -126,24 +193,41 @@
 <body>
 
 <div class="container">
-    <h1>Calculadora Vigilantes <span class="badge-new">NOVEDADES</span></h1>
-    <p class="subtitle">Incluye Permisos, Ausencias, PDF y Lógica Ley 2101</p>
+    <h1>Calculadora Vigilantes</h1>
+    <p class="subtitle">Navegaci&oacute;n entre d&iacute;as, Modal Completo y PDF</p>
 
     <div class="controls-panel">
         <div class="input-group">
             <label>Salario B&aacute;sico ($)</label>
-            <input type="number" id="baseSalary" value="1750905" onchange="fullRecalculate()">
+            <input type="text" inputmode="numeric" id="baseSalary" value="1.750.905" oninput="formatCurrency(this)" onchange="fullRecalculate()" placeholder="0">
         </div>
         <div class="input-group">
             <label>Auxilio Transporte ($)</label>
-            <input type="number" id="transportAux" value="249095" onchange="fullRecalculate()">
+            <input type="text" inputmode="numeric" id="transportAux" value="249.095" oninput="formatCurrency(this)" onchange="fullRecalculate()" placeholder="0">
         </div>
+        
         <div class="input-group">
-            <label>Mes a Liquidar</label>
-            <input type="month" id="selectedMonth" onchange="resetAndGenerate()">
+            <label>Periodo de Pago</label>
+            <div class="date-selectors">
+                <select id="selMonth" onchange="resetAndGenerate()">
+                    <option value="1">Enero</option><option value="2">Febrero</option>
+                    <option value="3">Marzo</option><option value="4">Abril</option>
+                    <option value="5">Mayo</option><option value="6">Junio</option>
+                    <option value="7">Julio</option><option value="8">Agosto</option>
+                    <option value="9">Septiembre</option><option value="10">Octubre</option>
+                    <option value="11">Noviembre</option><option value="12">Diciembre</option>
+                </select>
+                <select id="selYear" onchange="resetAndGenerate()">
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                    <option value="2026" selected>2026</option>
+                    <option value="2027">2027</option>
+                </select>
+            </div>
         </div>
+
         <div class="input-group">
-            <label>Patr&oacute;n</label>
+            <label>Patr&oacute;n Inicial</label>
             <select id="shiftPattern">
                 <option value="2D2N2X">2x2x2 (Rotativo)</option>
                 <option value="4D2X">4x2 Diurno</option>
@@ -152,7 +236,7 @@
             </select>
         </div>
         <div class="input-group">
-            <label>Inicio Ciclo</label>
+            <label>Inicio Ciclo <span title="Fecha donde inicia el patrón seleccionado" style="font-size:0.8em; cursor:help;">ℹ️</span></label>
             <input type="date" id="cycleStartDate">
         </div>
         <div class="btn-group">
@@ -171,7 +255,7 @@
     <div class="financial-summary">
         <div class="col-devengado">
             <div class="section-header">(+) DEVENGADO</div>
-            <div class="stat-row"><span>Valor Turnos (Bas + Rec + Ext)</span> <span id="valTotalTurnos">$ 0</span></div>
+            <div class="stat-row"><span>Valor Turnos + Recargos</span> <span id="valTotalTurnos">$ 0</span></div>
             <div class="stat-row"><span>Aux. Transporte</span> <span id="valTransporte">$ 0</span></div>
             <div class="stat-row total" style="color: var(--accent);"><span>TOTAL DEVENGADO</span> <span id="totalDevengado">$ 0</span></div>
         </div>
@@ -189,8 +273,8 @@
 
     <div class="education-section">
         <div class="education-header">
-            <h2>Gu&iacute;a de Tarifas y Novedades</h2>
-            <p>Calculado con divisor autom&aacute;tico seg&uacute;n fecha. Hora redondeada.</p>
+            <h2>Gu&iacute;a de Tarifas y Recargos</h2>
+            <p>Divisor autom&aacute;tico. Hora redondeada.</p>
         </div>
 
         <div class="formula-box">
@@ -200,52 +284,114 @@
         <div class="rates-grid">
             <div class="rate-card">
                 <div class="rate-title">Hora Ordinaria <span class="rate-percentage">1.0x</span></div>
-                <div class="rate-calc">Salario / Divisor</div>
                 <div class="rate-value" id="rate-ord">$ 0</div>
             </div>
             <div class="rate-card">
                 <div class="rate-title">Recargo Nocturno <span class="rate-percentage">0.35x</span></div>
-                <div class="rate-calc">Plus (7pm - 6am)</div>
                 <div class="rate-value" id="rate-rec-noc">$ 0</div>
             </div>
             <div class="rate-card">
                 <div class="rate-title">Extra Diurna <span class="rate-percentage">1.25x</span></div>
-                <div class="rate-calc">Hora Base + 25%</div>
                 <div class="rate-value" id="rate-ext-diu">$ 0</div>
             </div>
             <div class="rate-card">
                 <div class="rate-title">Extra Nocturna <span class="rate-percentage">1.75x</span></div>
-                <div class="rate-calc">Hora Base + 75%</div>
                 <div class="rate-value" id="rate-ext-noc">$ 0</div>
             </div>
             <div class="rate-card">
-                <div class="rate-title">Dominical/Festivo <span class="rate-percentage">1.75x</span></div>
-                <div class="rate-calc">Recargo Festivo Ord.</div>
+                <div class="rate-title">Extra/Dominical <span class="rate-percentage" style="background:#e65100;">1.8x / 1.9x</span></div>
                 <div class="rate-value" id="rate-rec-dom">$ 0</div>
             </div>
              <div class="rate-card">
-                <div class="rate-title">Permiso Remun. <span class="rate-percentage" style="background:purple;">Pago</span></div>
-                <div class="rate-calc">Se paga como día básico</div>
-                <div class="rate-value" style="color:purple;">8 Horas</div>
+                <div class="rate-title">Extra Dom. Diurna <span class="rate-percentage">2.05x / 2.15x</span></div>
+                <div class="rate-value" id="rate-ext-dom-diu">$ 0</div>
             </div>
              <div class="rate-card">
-                <div class="rate-title">Ausencia No Just. <span class="rate-percentage" style="background:red;">$0</span></div>
-                <div class="rate-calc">No se paga el día</div>
-                <div class="rate-value" style="color:red;">$ 0</div>
+                <div class="rate-title">Extra Dom. Noct <span class="rate-percentage">2.55x / 2.65x</span></div>
+                <div class="rate-value" id="rate-ext-dom-noc">$ 0</div>
             </div>
         </div>
     </div>
 </div>
 
+<div id="dayModal" class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-nav-container">
+                <button class="nav-btn" onclick="changeModalDay(-1)" title="Día Anterior">❮</button>
+                <h2 id="modalDateTitle">...</h2>
+                <button class="nav-btn" onclick="changeModalDay(1)" title="Siguiente Día">❯</button>
+            </div>
+            <button class="close-btn" onclick="closeModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <span id="modalLawInfo" class="info-pill">Divisor 220h | Hora: $7.959</span>
+            
+            <label for="modalShiftSelector" style="font-weight:bold; display:block; margin-bottom:5px;">Seleccionar Turno:</label>
+            <select id="modalShiftSelector" onchange="updateDayFromModal()">
+                <option value="D">☀️ Diurno (12h)</option>
+                <option value="N">🌑 Nocturno (12h)</option>
+                <option value="X">🟢 Descanso</option>
+                <option value="E">🟠 Extra/Festivo (Trabajo en Descanso)</option>
+                <option value="P">🟣 Permiso Remunerado</option>
+                <option value="A">🔴 Ausencia No Justificada</option>
+            </select>
+
+            <table class="detail-table">
+                <thead>
+                    <tr><th>Concepto</th><th>Cálculo</th><th>Valor</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Básico</td><td id="tdBasicDesc">-</td><td class="amount" id="tdBasicVal">$ 0</td></tr>
+                    <tr><td>Recargos</td><td id="tdRecDesc">-</td><td class="amount" id="tdRecVal">$ 0</td></tr>
+                    <tr><td>Extras</td><td id="tdExtDesc">-</td><td class="amount" id="tdExtVal">$ 0</td></tr>
+                    <tr class="detail-row-total"><td>TOTAL DÍA</td><td></td><td class="amount" id="tdTotalVal">$ 0</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
 <script>
-    // --- LÓGICA DE DIVISOR ---
+    let currentSelectedDay = null; // Día actualmente visible en el modal
+
+    // --- UTILIDADES ---
+    function formatCurrency(input) {
+        let value = input.value.replace(/\D/g, '');
+        if(value !== '') {
+            input.value = new Intl.NumberFormat('es-CO').format(value);
+        }
+    }
+
+    function getRawMoney(elementId) {
+        const val = document.getElementById(elementId).value;
+        return parseInt(val.replace(/\./g, '')) || 0;
+    }
+
+    function formatMoney(num) { 
+        if(typeof num === 'string') return num;
+        return '$ ' + Math.round(num).toLocaleString('es-CO'); 
+    }
+
+    // --- INICIALIZACIÓN ---
+    const today = new Date();
+    document.getElementById('selMonth').value = today.getMonth() + 1;
+    document.getElementById('selYear').value = today.getFullYear();
+    document.getElementById('cycleStartDate').value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-01`;
+
+    // --- LÓGICA CORE ---
     function getDivisorForDate(year, month, day) {
         const current = new Date(year, month - 1, day).getTime();
         const transition = new Date(2026, 6, 15).getTime(); 
         return (current >= transition) ? 210 : 220;
     }
 
-    // --- CONFIGURACIÓN ---
+    function getFestiveSurcharge(year, month, day) {
+        const current = new Date(year, month - 1, day).getTime();
+        const transition2026 = new Date(2026, 6, 1).getTime(); 
+        return (current >= transition2026) ? 0.90 : 0.80;
+    }
+
     const patterns = {
         '2D2N2X': ['D', 'D', 'N', 'N', 'X', 'X'],
         '4D2X': ['D', 'D', 'D', 'D', 'X', 'X'],
@@ -254,38 +400,33 @@
     };
 
     let dayStates = [];
-    // SECUENCIA DE ESTADOS ACTUALIZADA: D -> N -> X -> P -> A -> D
-    const nextState = { 'D': 'N', 'N': 'X', 'X': 'P', 'P': 'A', 'A': 'D' };
-    
     const stateConfig = {
         'D': { label: 'Diurno', class: 'cell-diurno' },
         'N': { label: 'Nocturno', class: 'cell-nocturno' },
         'X': { label: 'Descanso', class: 'cell-descanso' },
+        'E': { label: 'Extra/Fest', class: 'cell-extra' },
         'P': { label: 'Permiso', class: 'cell-permiso' },
         'A': { label: 'Ausencia', class: 'cell-ausencia' }
     };
-
-    const today = new Date();
-    document.getElementById('selectedMonth').value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-    document.getElementById('cycleStartDate').value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-01`;
 
     resetAndGenerate();
 
     function fullRecalculate() {
         updateEducationalTable();
         recalculate();
-        const [year, month] = document.getElementById('selectedMonth').value.split('-').map(Number);
+        const year = parseInt(document.getElementById('selYear').value);
+        const month = parseInt(document.getElementById('selMonth').value);
         renderGrid(year, month);
     }
 
     function resetAndGenerate() {
-        const monthInput = document.getElementById('selectedMonth').value;
+        const year = parseInt(document.getElementById('selYear').value);
+        const month = parseInt(document.getElementById('selMonth').value);
         const patternKey = document.getElementById('shiftPattern').value;
         const cycleStartInput = document.getElementById('cycleStartDate').value;
         
-        if (!monthInput || !cycleStartInput) return;
+        if (!cycleStartInput) return;
 
-        const [year, month] = monthInput.split('-').map(Number);
         const cycleStartDate = new Date(cycleStartInput + 'T00:00:00');
         const daysInMonth = new Date(year, month, 0).getDate();
         
@@ -323,13 +464,20 @@
 
         for (let day = 1; day <= daysInMonth; day++) {
             const state = dayStates[day];
-            const cell = document.createElement('div');
+            const cell = document.createElement('button'); // Changed to button for accessibility
+            cell.setAttribute('type', 'button');
             const config = stateConfig[state];
             const divisor = getDivisorForDate(year, month, day);
             const cellVals = calculateDayComponents(state, year, month, day); 
 
+            cell.id = `day-${day}`; // Unique ID for focus restoration
             cell.className = `day-cell ${config.class}`;
-            cell.onclick = () => toggleDay(day);
+            
+            // Accessible Label
+            const moneyText = Math.round(cellVals.total).toLocaleString();
+            cell.setAttribute('aria-label', `Día ${day}, ${config.label}, Valor: $${moneyText}. Haz clic para detalles.`);
+            
+            cell.onclick = () => openModal(day);
 
             cell.innerHTML = `
                 <div class="day-number">${day} <span class="rate-indicator">${divisor}h</span></div>
@@ -340,49 +488,141 @@
         }
     }
 
-    function toggleDay(day) {
-        dayStates[day] = nextState[dayStates[day]];
-        fullRecalculate();
+    // --- MODAL LOGIC CON NAVEGACIÓN ---
+    function openModal(day) {
+        currentSelectedDay = day;
+        const year = parseInt(document.getElementById('selYear').value);
+        const month = parseInt(document.getElementById('selMonth').value);
+        
+        // 1. Títulos
+        const months = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+        document.getElementById('modalDateTitle').innerText = `Día ${day} de ${months[month-1]} ${year}`;
+        
+        // 2. Info Ley
+        const divisor = getDivisorForDate(year, month, day);
+        const salary = getRawMoney('baseSalary');
+        const hourValue = Math.round(salary / divisor);
+        document.getElementById('modalLawInfo').innerText = `Divisor ${divisor} horas | Valor Hora: ${formatMoney(hourValue)}`;
+
+        // 3. Preselección
+        const currentState = dayStates[day];
+        document.getElementById('modalShiftSelector').value = currentState;
+
+        // 4. Cálculos
+        updateModalCalculations(year, month, day, currentState);
+
+        // 5. Mostrar
+        document.getElementById('dayModal').style.display = 'flex';
+        // Focus trap strategy: focus the main selector
+        document.getElementById('modalShiftSelector').focus();
     }
 
-    // --- CÁLCULO DÍA A DÍA CON NOVEDADES ---
+    // FUNCIÓN DE NAVEGACIÓN (NUEVA)
+    function changeModalDay(offset) {
+        const year = parseInt(document.getElementById('selYear').value);
+        const month = parseInt(document.getElementById('selMonth').value);
+        const daysInMonth = new Date(year, month, 0).getDate();
+        
+        const newDay = currentSelectedDay + offset;
+
+        // Validar límites
+        if (newDay >= 1 && newDay <= daysInMonth) {
+            openModal(newDay);
+        }
+    }
+
+    function updateDayFromModal() {
+        const newState = document.getElementById('modalShiftSelector').value;
+        const year = parseInt(document.getElementById('selYear').value);
+        const month = parseInt(document.getElementById('selMonth').value);
+        
+        dayStates[currentSelectedDay] = newState;
+        updateModalCalculations(year, month, currentSelectedDay, newState);
+        renderGrid(year, month);
+        recalculate();
+    }
+
+    function updateModalCalculations(year, month, day, state) {
+        const comps = calculateDayComponents(state, year, month, day);
+        
+        document.getElementById('tdBasicVal').innerText = formatMoney(comps.basic);
+        document.getElementById('tdRecVal').innerText = formatMoney(comps.recargo);
+        document.getElementById('tdExtVal').innerText = formatMoney(comps.extra);
+        document.getElementById('tdTotalVal').innerText = formatMoney(comps.total);
+
+        const desc = getDescriptions(state);
+        document.getElementById('tdBasicDesc').innerText = desc.basic;
+        document.getElementById('tdRecDesc').innerText = desc.recargo;
+        document.getElementById('tdExtDesc').innerText = desc.extra;
+    }
+
+    function getDescriptions(state) {
+        switch(state) {
+            case 'D': return { basic: '8h Ordinarias', recargo: '0', extra: '4h Extras Diurnas (1.25)' };
+            case 'N': return { basic: '1h Diu + 7h Noc', recargo: '7h Recargo Noc (0.35)', extra: '4h Extra Noc (1.75)' };
+            case 'X': return { basic: '8h Pago Básico', recargo: '0', extra: '0' };
+            case 'E': return { basic: '8h Base', recargo: '8h Recargo Festivo', extra: '4h Extra Festiva' };
+            case 'P': return { basic: '8h Permiso Pago', recargo: '0', extra: '0' };
+            case 'A': return { basic: '0', recargo: '0', extra: '0' };
+            default: return { basic: '-', recargo: '-', extra: '-' };
+        }
+    }
+
+    function closeModal(event) {
+        if (!event || event.target.id === 'dayModal' || event.target.classList.contains('close-btn')) {
+            document.getElementById('dayModal').style.display = 'none';
+            // Restore focus to the day button
+            if (currentSelectedDay) {
+                const btn = document.getElementById(`day-${currentSelectedDay}`);
+                if(btn) btn.focus();
+            }
+        }
+    }
+
+    // Close with Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeModal();
+        }
+    });
+
+    // --- CÁLCULO DÍA A DÍA ---
     function calculateDayComponents(type, year, month, day) {
-        const salary = parseFloat(document.getElementById('baseSalary').value) || 0;
+        const salary = getRawMoney('baseSalary');
         const divisor = getDivisorForDate(year, month, day);
         const hourValue = Math.round(salary / divisor);
+        const festSurcharge = getFestiveSurcharge(year, month, day);
 
         let total = 0;
         let details = { basic: 0, recargo: 0, extra: 0 };
 
         switch(type) {
             case 'X': // Descanso
-            case 'P': // Permiso Remunerado
-                // Se pagan las 8 horas base del día
+            case 'P': // Permiso
                 total = 8 * hourValue; 
                 details.basic = total;
                 break;
-
-            case 'A': // Ausencia No Justificada
-                // No se paga nada
+            case 'A': // Ausencia
                 total = 0;
                 break;
-
-            case 'D': // Diurno 12h
-                const valOrd = 8 * hourValue;
-                const valExt = 4 * hourValue * 1.25;
-                total = valOrd + valExt;
-                details.basic = valOrd;
-                details.extra = valExt;
+            case 'D': // Diurno
+                total = (8 * hourValue) + (4 * hourValue * 1.25);
+                details.basic = 8 * hourValue;
+                details.extra = 4 * hourValue * 1.25;
                 break;
-
-            case 'N': // Nocturno 12h
-                const valOrdDiu = 1 * hourValue;
-                const valOrdNoc = 7 * hourValue * 1.35;
-                const valExtNoc = 4 * hourValue * 1.75;
-                total = valOrdDiu + valOrdNoc + valExtNoc;
-                details.basic = valOrdDiu + (7 * hourValue); 
-                details.recargo = (7 * hourValue * 0.35);    
-                details.extra = valExtNoc;
+            case 'N': // Nocturno
+                details.basic = (1 * hourValue) + (7 * hourValue);
+                details.recargo = (7 * hourValue * 0.35);
+                details.extra = (4 * hourValue * 1.75);
+                total = details.basic + details.recargo + details.extra;
+                break;
+            case 'E': // Extra/Festivo
+                const valBaseFest = 8 * hourValue * (1 + festSurcharge);
+                const valExtraFest = 4 * hourValue * (1.25 + festSurcharge);
+                total = valBaseFest + valExtraFest;
+                details.basic = 8 * hourValue;
+                details.recargo = (8 * hourValue * festSurcharge);
+                details.extra = valExtraFest; 
                 break;
         }
         
@@ -390,8 +630,8 @@
     }
 
     function recalculate() {
-        const monthInput = document.getElementById('selectedMonth').value;
-        const [year, month] = monthInput.split('-').map(Number);
+        const year = parseInt(document.getElementById('selYear').value);
+        const month = parseInt(document.getElementById('selMonth').value);
         
         let grandTotal = 0;
 
@@ -400,7 +640,7 @@
             grandTotal += comps.total;
         }
 
-        const auxTransporte = parseFloat(document.getElementById('transportAux').value) || 0;
+        const auxTransporte = getRawMoney('transportAux');
         const ibc = grandTotal;
         const salud = Math.round(ibc * 0.04);
         const pension = Math.round(ibc * 0.04);
@@ -417,31 +657,37 @@
     }
 
     function updateEducationalTable() {
-        const salary = parseFloat(document.getElementById('baseSalary').value) || 0;
-        const monthInput = document.getElementById('selectedMonth').value;
-        const [year, month] = monthInput.split('-').map(Number);
+        const salary = getRawMoney('baseSalary');
+        const year = parseInt(document.getElementById('selYear').value);
+        const month = parseInt(document.getElementById('selMonth').value);
         const divisorRef = getDivisorForDate(year, month, 1);
         const hourVal = Math.round(salary / divisorRef); 
+        const festPct = getFestiveSurcharge(year, month, 1);
 
         document.getElementById('lblValorHora').innerText = formatMoney(hourVal) + ` (Base ${divisorRef}h)`;
         document.getElementById('rate-ord').innerText = formatMoney(hourVal);
         document.getElementById('rate-rec-noc').innerText = formatMoney(hourVal * 0.35);
         document.getElementById('rate-ext-diu').innerText = formatMoney(hourVal * 1.25);
         document.getElementById('rate-ext-noc').innerText = formatMoney(hourVal * 1.75);
-        document.getElementById('rate-rec-dom').innerText = formatMoney(hourVal * 1.75);
+        
+        document.getElementById('rate-rec-dom').innerText = formatMoney(hourVal * (1 + festPct));
+        document.getElementById('rate-ext-dom-diu').innerText = formatMoney(hourVal * (1.25 + festPct));
+        document.getElementById('rate-ext-dom-noc').innerText = formatMoney(hourVal * (1.75 + festPct));
     }
 
     function generatePDF() {
+        recalculate(); 
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        const monthInput = document.getElementById('selectedMonth').value;
-        const [year, month] = monthInput.split('-').map(Number);
+        
+        const year = document.getElementById('selYear').value;
+        const month = document.getElementById('selMonth').options[document.getElementById('selMonth').selectedIndex].text;
         const salary = document.getElementById('baseSalary').value;
 
         doc.setFontSize(18);
-        doc.text("Reporte de N\u00F3mina (Con Novedades)", 105, 15, null, null, "center");
+        doc.text("Volante de N\u00F3mina", 105, 15, null, null, "center");
         doc.setFontSize(10);
-        doc.text(`Periodo: ${monthInput} | Salario Base: ${formatMoney(salary)}`, 105, 22, null, null, "center");
+        doc.text(`Periodo: ${month} ${year} | Salario Base: $${salary}`, 105, 22, null, null, "center");
 
         const totalTurnos = document.getElementById('valTotalTurnos').innerText;
         const auxTrans = document.getElementById('valTransporte').innerText;
@@ -459,8 +705,8 @@
                 ['Auxilio de Transporte', auxTrans, ''],
                 ['Aporte Salud (4%)', '', salud],
                 ['Aporte Pensi\u00F3n (4%)', '', pension],
-                [{content: 'TOTALES', styles: {fontStyle: 'bold'}}, totalDev, totalDed],
-                [{content: 'NETO A PAGAR', colSpan: 3, styles: {halign: 'center', fontSize: 14, fillColor: [44, 62, 80], textColor: 255}}, neto, '']
+                ['TOTALES', totalDev, totalDed],
+                [{content: 'NETO A PAGAR: ' + neto, colSpan: 3, styles: {halign: 'center', fontSize: 14, fillColor: [44, 62, 80], textColor: 255}}]
             ],
             theme: 'grid',
             headStyles: { fillColor: [44, 62, 80] },
@@ -468,12 +714,15 @@
         });
 
         let rows = [];
-        const stateLabels = { 'D': 'Diurno', 'N': 'Nocturno', 'X': 'Descanso', 'P': 'Permiso', 'A': 'Ausencia' };
+        const stateLabels = { 'D': 'Diurno', 'N': 'Nocturno', 'X': 'Descanso', 'E': 'Extra/Fest', 'P': 'Permiso', 'A': 'Ausencia' };
         
+        const yrInt = parseInt(year);
+        const moInt = parseInt(document.getElementById('selMonth').value);
+
         for (let day = 1; day < dayStates.length; day++) {
             const state = dayStates[day];
-            const divisor = getDivisorForDate(year, month, day);
-            const comps = calculateDayComponents(state, year, month, day);
+            const divisor = getDivisorForDate(yrInt, moInt, day);
+            const comps = calculateDayComponents(state, yrInt, moInt, day);
             
             rows.push([
                 day,
@@ -486,7 +735,7 @@
             ]);
         }
 
-        doc.text("Detalle Diario de Asistencia", 14, doc.lastAutoTable.finalY + 10);
+        doc.text("Detalle de Asistencia", 14, doc.lastAutoTable.finalY + 10);
 
         doc.autoTable({
             startY: doc.lastAutoTable.finalY + 15,
@@ -498,16 +747,9 @@
             columnStyles: { 0: { halign: 'center' }, 1: { halign: 'left' } }
         });
 
-        doc.save(`Nomina_Novedades_${monthInput}.pdf`);
-    }
-
-    function formatMoney(num) { 
-        if(typeof num === 'string') return num;
-        return '$ ' + Math.round(num).toLocaleString('es-CO'); 
+        doc.save(`Nomina_${month}_${year}.pdf`);
     }
 </script>
 
 </body>
-
 </html>
-
